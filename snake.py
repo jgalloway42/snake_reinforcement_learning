@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May  8 11:36:09 2022
-
-@author: jfell
+Snake Game using pygame
 """
 import pygame
 import sys
@@ -15,8 +13,10 @@ GRIDSIZE = 20
 GRID_WIDTH = SCREEN_WIDTH/GRIDSIZE
 GRID_HEIGHT = SCREEN_HEIGHT/GRIDSIZE
 
-BG_COLOR_DARK = (40, 40, 40) #(93, 216, 228)
-BG_COLOR_LIGHT = (52, 52, 52) #(84,194,205)
+BG_COLOR_DARK = (40, 40, 40)
+BG_COLOR_LIGHT = (52, 52, 52)
+SNAKE_COLOR = (51, 255, 0)
+FOOD_COLOR = (255, 204, 0)
 
 UP = (0,-1)
 DOWN = (0,1)
@@ -25,12 +25,10 @@ RIGHT = (1,0)
 
 class Snake():
     def __init__(self):
-        self.length = 1
-        self.positions = [(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)]
-        self.direction = random.choice([UP,DOWN,LEFT,RIGHT])
-        self.color = (51, 255, 0)
-        self.score = 0
-    
+        self.color = SNAKE_COLOR
+        self.high_score = 0
+        self.reset()
+        
     def get_head_position(self):
         return self.positions[0]
     
@@ -41,10 +39,7 @@ class Snake():
             self.direction = point
             
             
-    def is_collision(self, point = None):
-        if point is None:
-            point = self.get_head_position()
-        print(point)
+    def is_collision(self, point):
         #hit self
         if point in self.positions[1:]:
             return True
@@ -57,7 +52,7 @@ class Snake():
     def move(self):
         cur = self.get_head_position()
         x, y = self.direction
-        new = (((cur[0] + (x*GRIDSIZE)) % SCREEN_WIDTH), (cur[1] + (y*GRIDSIZE)) % SCREEN_HEIGHT)
+        new = ((cur[0] + x*GRIDSIZE) % SCREEN_WIDTH, (cur[1] + y*GRIDSIZE) % SCREEN_HEIGHT)
         if self.is_collision(new):
             self.reset() #game over...snake hit itself
         else:
@@ -90,13 +85,17 @@ class Snake():
                 elif event.key == pygame.K_LEFT:
                     self.turn(LEFT)
                 elif event.key == pygame.K_RIGHT:
-                    self.turn(RIGHT)
+                    self.turn(RIGHT)     
+    
+    def update_high_score(self):
+        if self.score > self.high_score:
+            self.high_score = self.score
 
 class Food():
     
     def __init__(self):
         self.position = (0,0)
-        self.color = (255, 204, 0)
+        self.color = FOOD_COLOR
         self.randomize_position()
     
     def randomize_position(self):
@@ -125,7 +124,7 @@ def drawGrid(surface):
                 pygame.draw.rect(surface, BG_COLOR_LIGHT, r)
 
     
-def main():
+def play_game():
     pygame.init()
     
     clock = pygame.time.Clock()
@@ -152,16 +151,23 @@ def main():
             #ate the food
             snake.length += 1
             snake.score += 1
+            snake.update_high_score()
             food.randomize_position()
+            
         
         # redraw screen
         snake.draw(surface)
         food.draw(surface)
         screen.blit(surface, (0,0))
-        text = myfont.render(f'Score {snake.score:0.0f}', 1, (0, 0, 0))
-        screen.blit(text, (5, 5))
+        text = myfont.render(f'SCORE: {snake.score:0.0f}', 1, (0, 0, 0))
+        screen.blit(text, (GRIDSIZE, 5))
+        text = myfont.render(f'HIGH SCORE: {snake.high_score:0.0f}', 1, (0, 0, 0))
+        screen.blit(text, (SCREEN_WIDTH/2, 5))
         pygame.display.update()
     
-main()
+
+# play game
+if __name__ == '__main__':
+    play_game()
     
     
